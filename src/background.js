@@ -1,5 +1,7 @@
-const BASE_ENDPOINT = 'https://b9a4-95-55-86-98.ngrok.io';
-let username;
+const RM_URL = 'https://api.removal.ai/3.0/remove';
+const PRICING_PAGE_URL = 'https://removal.ai/pricing/'
+const TOKEN = ''; // google oauth
+// const TOKEN = ''; // mail login
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
@@ -9,34 +11,27 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-chrome.identity.getProfileUserInfo((userInfo) => {
-  username = 
-    userInfo.email 
-      || ('unauthorized' + String(Math.random()).split('.')[1]);
-});
-
 chrome.contextMenus.onClicked.addListener(async (imageInfo) => {
-  return fetch(BASE_ENDPOINT + '/process-image', {
+  let data = new FormData();
+  data.append('image_url', imageInfo.srcUrl);
+
+  return fetch(RM_URL, {
     method: 'POST',
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'accept': 'application/json',
+      'Rm-Token': TOKEN
     },
-    body: JSON.stringify({
-      username: username,
-      imageUrl: imageInfo.srcUrl
-    })
+    body: data
   })
   .then(rawResp => {
     return rawResp.json()
   })
   .then(respBody => {
-    if (respBody?.imageUrl) {
-      chrome.tabs.create({ url: BASE_ENDPOINT + '/get-image' 
-        + '?imageName=' + respBody.imageUrl });
+    if (respBody?.url) {
+      chrome.tabs.create({ url: respBody.url });
     } else {
-      console.log(respBody?.message);
+      chrome.tabs.create({ url: PRICING_PAGE_URL })
     }
   })
-  .catch(err => {});
+  .catch(err => { console.log(err.message) });
 });

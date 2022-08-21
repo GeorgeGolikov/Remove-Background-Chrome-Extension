@@ -5,17 +5,15 @@
   "version": "1.0.0",
   
   "background": {
-    "service_worker": "./src/background.js"
+    "service_worker": "./src/background-rembg.js"
   },
 
   "permissions": [
-    "contextMenus",
-    "identity", 
-    "identity.email"
+    "contextMenus"
   ],
 
   "host_permissions": [
-    "https://*/*"
+    "*://*/"
   ],
 
   "icons": {
