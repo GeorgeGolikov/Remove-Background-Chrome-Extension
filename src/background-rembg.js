@@ -1,7 +1,10 @@
 const RM_URL = 'https://api.remove.bg/v1.0/removebg';
-const PRICING_PAGE_URL = ''
+const SERVICE_PAGE_URL = 'https://remove.bg';
+const SERVICE_NAME = 'remove.bg';
 const TOKEN = ''; // google oauth
 // const TOKEN = ''; // mail login
+// const TOKEN = ''; // mail georgij login
+// const TOKEN = ''; // mail golikov.gd login
 
 chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
@@ -13,7 +16,9 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.contextMenus.onClicked.addListener(async (imageInfo) => {
     let data = new FormData();
+    let size = 'preview';
     data.append('image_url', imageInfo.srcUrl);
+    data.append('size', size);
 
     return fetch(RM_URL, {
         method: 'POST',
@@ -30,10 +35,21 @@ chrome.contextMenus.onClicked.addListener(async (imageInfo) => {
         if (respBody?.data) {
             let binImageB64 = respBody.data.result_b64;
             let imUrl = 'data:image/png;base64,' + binImageB64;
-            chrome.tabs.create({ url: imUrl });
+            let urlObj = { url: imUrl }
+
+            if (size === 'preview') {
+                chrome.tabs.create(urlObj);
+            } else {
+                chrome.downloads.download(urlObj);
+            }
         } else {
             let firstErrorMsg = respBody.errors[0].title;
-            let erUrl = 'data:text/html,<h1><a href="https://remove.bg">remove.bg</a>: ' + firstErrorMsg + '</h1>';
+            let erUrl = 'data:text/html,<h1>' +
+                '<a href="' + SERVICE_PAGE_URL + '">' +
+                SERVICE_NAME + '</a>: ' +
+                firstErrorMsg +
+                '</h1>';
+
             chrome.tabs.create({ url: erUrl });
         }
     })

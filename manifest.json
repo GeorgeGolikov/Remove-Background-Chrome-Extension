@@ -5,11 +5,12 @@
   "version": "1.0.0",
   
   "background": {
-    "service_worker": "./src/background-rembg.js"
+    "service_worker": "./src/background.js"
   },
 
   "permissions": [
-    "contextMenus"
+    "contextMenus",
+    "downloads"
   ],
 
   "host_permissions": [

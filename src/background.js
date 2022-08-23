@@ -1,7 +1,8 @@
 const RM_URL = 'https://api.removal.ai/3.0/remove';
-const PRICING_PAGE_URL = 'https://removal.ai/pricing/'
-const TOKEN = ''; // google oauth
-// const TOKEN = ''; // mail login
+const SERVICE_PAGE_URL = 'https://removal.ai';
+const SERVICE_NAME = 'removal.ai';
+// const TOKEN = ''; // google oauth
+const TOKEN = ''; // mail login
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
@@ -14,6 +15,7 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener(async (imageInfo) => {
   let data = new FormData();
   data.append('image_url', imageInfo.srcUrl);
+  data.append('get_base64', '1');
 
   return fetch(RM_URL, {
     method: 'POST',
@@ -27,11 +29,38 @@ chrome.contextMenus.onClicked.addListener(async (imageInfo) => {
     return rawResp.json()
   })
   .then(respBody => {
-    if (respBody?.url) {
-      chrome.tabs.create({ url: respBody.url });
+    if (respBody?.base64) {
+      let urlObj;
+      if (respBody?.high_resolution) {
+        urlObj = { url: respBody.high_resolution }
+
+        chrome.downloads.download(urlObj);
+      }
+
+      let binImageB64 = respBody.base64;
+      let imUrl = 'data:image/png;base64,' + binImageB64;
+      urlObj = { url: imUrl }
+
+      chrome.tabs.create(urlObj);
     } else {
-      chrome.tabs.create({ url: PRICING_PAGE_URL })
+      let errorMsg = respBody.message;
+      let erUrl = 'data:text/html,<h1>' +
+          '<a href="' + SERVICE_PAGE_URL + '">' +
+          SERVICE_NAME + '</a>: ' +
+          errorMsg +
+          '</h1>';
+
+      chrome.tabs.create({ url: erUrl });
     }
   })
-  .catch(err => { console.log(err.message) });
+  .catch(err => {
+    console.log(err.message)
+
+    let adviceMsg = 'Perhaps this image is not available through the given link. ' +
+        'Try to open the image in the <b>original</b> mode. Then delete the background once again.';
+    let erUrl = 'data:text/html,<h1>' + err.message + '</h1>' +
+        '<p>' + adviceMsg + '</p>';
+
+    chrome.tabs.create({ url: erUrl });
+  });
 });
