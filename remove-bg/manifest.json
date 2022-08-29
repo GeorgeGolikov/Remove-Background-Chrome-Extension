@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Remove Back with remove.bg service",
+  "description": "Remove background from selected image",
+  "version": "1.0.0",
+  
+  "background": {
+    "service_worker": "./src/background.js"
+  },
+
+  "permissions": [
+    "contextMenus",
+    "downloads",
+    "storage"
+  ],
+
+  "host_permissions": [
+    "*://*/"
+  ],
+
+  "icons": {
+      "16": "icons/removebg.png",
+      "64": "icons/removebg.png",
+      "128": "icons/removebg.png"
+  },
+
+  "action": {
+    "default_popup": "./src/popup/popup.html",
+    "default_title": "Type in your token"
+  }
+}
