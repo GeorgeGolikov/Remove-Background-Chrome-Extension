@@ -1,25 +1,37 @@
 const RM_URL = 'https://api.remove.bg/v1.0/removebg';
 const SERVICE_PAGE_URL = 'https://remove.bg';
 const SERVICE_NAME = 'remove.bg';
-const IMAGE_SIZE = 'preview';
-// const TOKEN = ''; // google oauth
-const TOKEN = ''; // mail login
-// const TOKEN = ''; // mail georgij login
-// const TOKEN = ''; // mail golikov.gd login
+let IMAGE_SIZE = 'preview';
 
 chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
-        id: "remove-background-app",
+        id: "remove-bg-app",
         title: "Remove background from image",
         contexts:["image"]
     });
 });
 
 chrome.contextMenus.onClicked.addListener(async (imageInfo) => {
-    let data = createFormData(imageInfo.srcUrl);
-    let requestConfig = createRequestConfig(data);
-    return getImgFromRequest(requestConfig);
+    chrome.storage.sync.get(['token_bg', 'size_bg'], (res) => {
+        let token = res.token_bg;
+        reassignImageSizeIfNotNull(res.size_bg);
+        if (token) {
+            deleteBack(token, imageInfo.srcUrl);
+        } else {
+            openTabWithMsgWhenEmptyToken();
+        }
+    });
 });
+
+function reassignImageSizeIfNotNull(size) {
+    if (size) IMAGE_SIZE = size;
+}
+
+function deleteBack(token, srcUrl) {
+    let data = createFormData(srcUrl);
+    let requestConfig = createRequestConfig(token, data);
+    getImgFromRequest(requestConfig);
+}
 
 function createFormData(srcUrl) {
     let data = new FormData();
@@ -28,19 +40,19 @@ function createFormData(srcUrl) {
     return data;
 }
 
-function createRequestConfig(formData) {
+function createRequestConfig(token, formData) {
     return {
         method: 'POST',
         headers: {
             'accept': 'application/json',
-            'X-Api-Key': TOKEN
+            'X-Api-Key': token
         },
         body: formData
     }
 }
 
 function getImgFromRequest(requestConfig) {
-    return fetch(RM_URL, requestConfig)
+    fetch(RM_URL, requestConfig)
         .then(getResponseInJson)
         .then(showResponse)
         .catch(printFetchErr);
@@ -96,4 +108,11 @@ function createErrUrlObjFromMsg(errMsg) {
         errMsg +
         '</h1>';
     return { url: errUrl };
+}
+
+function openTabWithMsgWhenEmptyToken() {
+    let msg = 'Token not provided. Please click on the extension icon on the toolbar' +
+        ' and type in the token from your remove.bg account.';
+    let urlObj = createErrUrlObjFromMsg(msg);
+    openUrlInNewTab(urlObj);
 }

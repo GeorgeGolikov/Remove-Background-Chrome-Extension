@@ -7,7 +7,7 @@ const TOKEN = ''; // mail georgij login
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
-    id: "remove-background-app",
+    id: "removal-ai-app",
     title: "Remove background from image",
     contexts:["image"]
   });

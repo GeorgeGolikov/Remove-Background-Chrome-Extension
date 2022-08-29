@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Remove Back",
+  "name": "Remove Back with removal.ai service",
   "description": "Remove background from selected image",
   "version": "1.0.0",
   
@@ -10,7 +10,8 @@
 
   "permissions": [
     "contextMenus",
-    "downloads"
+    "downloads",
+    "storage"
   ],
 
   "host_permissions": [
@@ -21,5 +22,10 @@
       "16": "icons/back-16.png",
       "64": "icons/back-64.png",
       "128": "icons/back-128.png"
+  },
+
+  "action": {
+    "default_popup": "./src/popup/popup.html",
+    "default_title": "Type in your token"
   }
 }
