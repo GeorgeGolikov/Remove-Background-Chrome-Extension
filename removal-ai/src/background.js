@@ -1,9 +1,6 @@
 const RM_URL = 'https://api.removal.ai/3.0/remove';
 const SERVICE_PAGE_URL = 'https://removal.ai';
 const SERVICE_NAME = 'removal.ai';
-// const TOKEN = ''; // google oauth
-// const TOKEN = ''; // mail login
-const TOKEN = ''; // mail georgij login
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
@@ -14,10 +11,21 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.contextMenus.onClicked.addListener(async (imageInfo) => {
-  let data = createFormData(imageInfo.srcUrl);
-  let requestConfig = createRequestConfig(data);
-  return getImgFromRequest(requestConfig);
+  chrome.storage.sync.get(['token_ai'], (res) => {
+    let token = res.token_ai;
+    if (token) {
+      deleteBack(token, imageInfo.srcUrl);
+    } else {
+      openTabWithMsgWhenEmptyToken();
+    }
+  });
 });
+
+function deleteBack(token, srcUrl) {
+  let data = createFormData(srcUrl);
+  let requestConfig = createRequestConfig(token, data);
+  getImgFromRequest(requestConfig);
+}
 
 function createFormData(srcUrl) {
   let data = new FormData();
@@ -26,19 +34,19 @@ function createFormData(srcUrl) {
   return data;
 }
 
-function createRequestConfig(formData) {
+function createRequestConfig(token, formData) {
   return {
     method: 'POST',
     headers: {
       'accept': 'application/json',
-      'Rm-Token': TOKEN
+      'Rm-Token': token
     },
     body: formData
   }
 }
 
 function getImgFromRequest(requestConfig) {
-  return fetch(RM_URL, requestConfig)
+  fetch(RM_URL, requestConfig)
       .then(getResponseInJson)
       .then(showResponse)
       .catch(printFetchErr);
@@ -121,4 +129,11 @@ function createErrUrlObjFromErrAndAdviceMsgs(errMsg, adviceMsg) {
   let errUrl = 'data:text/html,<h1>' + errMsg + '</h1>' +
       '<p>' + adviceMsg + '</p>';
   return createUrlObjFromUrl(errUrl);
+}
+
+function openTabWithMsgWhenEmptyToken() {
+  let msg = 'Token not provided. Please click on the extension icon on the toolbar' +
+      ' and type in the token from your removal.ai account.';
+  let urlObj = createErrUrlObjFromMsg(msg);
+  openUrlInNewTab(urlObj);
 }

@@ -19,9 +19,9 @@
   ],
 
   "icons": {
-      "16": "icons/back-16.png",
-      "64": "icons/back-64.png",
-      "128": "icons/back-128.png"
+      "16": "icons/removebg.png",
+      "64": "icons/removebg.png",
+      "128": "icons/removebg.png"
   },
 
   "action": {
